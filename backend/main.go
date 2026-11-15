@@ -790,9 +790,15 @@ func handleBrowse(absContentRoot string, secrets *SecretsStore) http.HandlerFunc
 			return
 		}
 
+		match := r.URL.Query().Get("match")
+
 		files := make([]FileEntry, 0, len(entries))
 		for _, e := range entries {
-			if strings.HasPrefix(e.Name(), ".") {
+			if match != "" {
+				if ok, _ := filepath.Match(match, e.Name()); !ok {
+					continue
+				}
+			} else if strings.HasPrefix(e.Name(), ".") {
 				continue
 			}
 

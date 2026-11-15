@@ -683,3 +683,20 @@ func TestBrowseHasSecretField(t *testing.T) {
 		}
 	}
 }
+
+func TestBrowseGlobMatch(t *testing.T) {
+	root := setupTestDir(t)
+	mux := newMux(testConfig(root))
+
+	rr := browseRequest(t, mux, "/&match=*.txt")
+	resp := decodeBrowse(t, rr)
+
+	if len(resp.Entries) == 0 {
+		t.Fatal("expected at least one .txt entry")
+	}
+	for _, e := range resp.Entries {
+		if filepath.Ext(e.Name) != ".txt" {
+			t.Errorf("unexpected entry %q for match=*.txt", e.Name)
+		}
+	}
+}

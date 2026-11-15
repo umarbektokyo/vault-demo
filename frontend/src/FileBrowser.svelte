@@ -343,12 +343,13 @@
   }
 
   async function browse(path, pushHistory = true) {
+    const glob = filterText.includes('*') ? `&match=${encodeURIComponent(filterText)}` : '';
     loading = true;
     error = null;
     selectedIndex = -1;
     filterText = '';
     try {
-      const res = await fetch(`/api/browse?path=${encodeURIComponent(path)}`);
+      const res = await fetch(`/api/browse?path=${encodeURIComponent(path)}${glob}`);
       if (!res.ok) throw new Error('Failed to load directory');
       const data = await res.json();
       currentPath = data.path;
@@ -521,7 +522,7 @@
 
       <div class="search-widget">
         <svg class="search-icon" width="11" height="11" viewBox="0 0 11 11"><circle cx="4.5" cy="4.5" r="3" stroke="currentColor" fill="none" stroke-width="1.2"/><path d="M7 7l3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-        <input type="text" bind:value={filterText} placeholder="Filter" class="search-input" />
+        <input type="text" bind:value={filterText} placeholder="Filter" class="search-input" onkeydown={(e) => e.key === 'Enter' && filterText.includes('*') && browse(currentPath, false)} />
       </div>
 
       <div class="header-sep"></div>
