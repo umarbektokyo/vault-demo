@@ -819,9 +819,38 @@ func handleBrowse(absContentRoot string, secrets *SecretsStore) http.HandlerFunc
 			}
 			return strings.ToLower(files[i].Name) < strings.ToLower(files[j].Name)
 		})
+		sortEntries(files, r.URL.Query().Get("sort"), r.URL.Query().Get("order") == "desc")
 
 		writeJSON(w, http.StatusOK, BrowseResponse{Path: reqPath, Entries: files})
 	}
+}
+
+// sortEntries orders a directory listing by "name", "size" or "modified" (anything else means name).
+// Folders always come first; ties fall back to the name so the order is stable.
+func sortEntries(files []FileEntry, by string, desc bool) {
+	sort.SliceStable(files, func(i, j int) bool {
+		a, b := files[i], files[j]
+		if a.IsDir != b.IsDir {
+			return a.IsDir
+		}
+		less, same := false, false
+		switch by {
+		case "size":
+			less, same = a.Size < b.Size, a.Size == b.Size
+		case "modified":
+			less, same = a.ModTime.Before(b.ModTime), a.ModTime.Equal(b.ModTime)
+		default:
+			an, bn := strings.ToLower(a.Name), strings.ToLower(b.Name)
+			less, same = an < bn, an == bn
+		}
+		if same {
+			return strings.ToLower(a.Name) < strings.ToLower(b.Name)
+		}
+		if desc {
+			return !less
+		}
+		return less
+	})
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {

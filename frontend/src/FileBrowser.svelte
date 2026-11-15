@@ -342,13 +342,22 @@
     }
   }
 
+  let sortBy = $state('name');
+  let sortDesc = $state(false);
+
+  function sortOn(column) {
+    if (sortBy === column) sortDesc = !sortDesc;
+    else { sortBy = column; sortDesc = false; }
+    browse(currentPath, false);
+  }
+
   async function browse(path, pushHistory = true) {
     loading = true;
     error = null;
     selectedIndex = -1;
     filterText = '';
     try {
-      const res = await fetch(`/api/browse?path=${encodeURIComponent(path)}`);
+      const res = await fetch(`/api/browse?path=${encodeURIComponent(path)}&sort=${sortBy}&order=${sortDesc ? 'desc' : 'asc'}`);
       if (!res.ok) throw new Error('Failed to load directory');
       const data = await res.json();
       currentPath = data.path;
@@ -563,9 +572,9 @@
       {:else if viewMode === 'list'}
         <div class="list-header">
           <div class="lh-icon"></div>
-          <div class="lh-name">Name</div>
-          <div class="lh-size">Size</div>
-          <div class="lh-date">Date Modified</div>
+          <button class="lh-name lh-sort" class:active={sortBy === 'name'} onclick={() => sortOn('name')}>Name{#if sortBy === 'name'}<span class="lh-arrow">{sortDesc ? '▼' : '▲'}</span>{/if}</button>
+          <button class="lh-size lh-sort" class:active={sortBy === 'size'} onclick={() => sortOn('size')}>Size{#if sortBy === 'size'}<span class="lh-arrow">{sortDesc ? '▼' : '▲'}</span>{/if}</button>
+          <button class="lh-date lh-sort" class:active={sortBy === 'modified'} onclick={() => sortOn('modified')}>Date Modified{#if sortBy === 'modified'}<span class="lh-arrow">{sortDesc ? '▼' : '▲'}</span>{/if}</button>
           <div class="lh-act"></div>
         </div>
         <div class="list-body">
@@ -1249,6 +1258,9 @@
     flex-shrink: 0;
   }
   .lh-size { text-align: right; padding-right: 8px; }
+  .lh-sort { all: unset; cursor: pointer; font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit; }
+  .lh-sort:hover, .lh-sort.active { color: #ddd; }
+  .lh-arrow { margin-left: 4px; font-size: 8px; }
 
   /* List body */
   .list-body {
