@@ -26,6 +26,14 @@
     a.click();
   }
 
+  function formatSize(bytes) {
+    if (bytes < 1024) return `${bytes} B`;
+    const units = ['KB', 'MB', 'GB'];
+    let v = bytes / 1024, i = 0;
+    while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
+    return `${v.toFixed(1)} ${units[i]}`;
+  }
+
   function copyUrl() {
     navigator.clipboard.writeText(`${window.location.origin}${file.url}`);
   }
@@ -42,6 +50,7 @@
         <path d="M5 5.5h6M5 8h6M5 10.5h4" stroke="#5a9fd4" stroke-width="0.9" stroke-linecap="round"/>
       </svg>
       <span class="pv-filename" title={file.name}>{file.name}</span>
+      <span class="pv-size">{formatSize(file.size)}</span>
     </div>
     <div class="pv-actions">
       <button class="bw icon-sq" onclick={copyUrl} title="Copy direct URL">
@@ -106,6 +115,15 @@
     flex-shrink: 0;
     gap: 8px;
   }
+  .pv-size {
+    margin-left: 8px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: #3a3a3a;
+    color: #9a9a9a;
+    font-size: 11px;
+  }
+
   .pv-title-row {
     display: flex;
     align-items: center;
